@@ -11,6 +11,8 @@ const rateLimitConfigs: Record<string, RateLimitConfig> = {
   file_upload: { windowMs: 60 * 1000, maxRequests: 3 }, // 3 per minute
   vote: { windowMs: 5 * 60 * 1000, maxRequests: 3 }, // 3 per 5 minutes
   rejoin: { windowMs: 3 * 60 * 1000, maxRequests: 1 }, // 1 per 3 minutes
+  spin_bottle: { windowMs: 10 * 1000, maxRequests: 1 }, // 1 per 10 seconds
+  initiate_vote: { windowMs: 30 * 1000, maxRequests: 1 }, // 1 per 30 seconds
 };
 
 export async function checkRateLimit(

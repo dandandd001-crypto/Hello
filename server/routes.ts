@@ -282,6 +282,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return;
         }
 
+        const ipAddress = socket.handshake.headers['x-forwarded-for'] as string || socket.handshake.address;
+        const rateLimitCheck = await checkRateLimit(ipAddress, 'spin_bottle');
+        
+        if (!rateLimitCheck.allowed) {
+          socket.emit('error', { message: `Slow down! Wait ${rateLimitCheck.retryAfter} seconds before spinning again.` });
+          return;
+        }
+
         const users = await storage.getUsersByRoom(data.roomId);
         const onlineUsers = users.filter(u => u.isOnline);
         
@@ -422,6 +430,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     socket.on('initiate_vote', async (data: { roomId: string; targetUserId: string; type: 'kick' | 'rejoin' }) => {
       try {
         if (!socketData.userId || !socketData.username) return;
+
+        const ipAddress = socket.handshake.headers['x-forwarded-for'] as string || socket.handshake.address;
+        const rateLimitCheck = await checkRateLimit(ipAddress, 'initiate_vote');
+        
+        if (!rateLimitCheck.allowed) {
+          socket.emit('error', { message: `Slow down! Wait ${rateLimitCheck.retryAfter} seconds before initiating another vote.` });
+          return;
+        }
 
         const targetUser = await storage.getUser(data.targetUserId);
         if (!targetUser) return;
